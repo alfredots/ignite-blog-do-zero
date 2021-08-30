@@ -1,1 +1,47 @@
 // TODO
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  header {
+    width: 1190px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.posts{
+  width: 1190px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 48px;
+
+  a {
+    align-self: flex-start;
+
+    strong {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 18px;
+      color: var(--gray-200);
+      margin-bottom: 24px;
+    }
+
+    time svg, span svg {
+      margin-right: 0.5rem;
+    }
+
+    time {
+      margin-right: 26px;
+    }
+  }
+}
