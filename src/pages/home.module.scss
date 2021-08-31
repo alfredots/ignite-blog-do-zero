@@ -4,17 +4,9 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
-  header {
-    width: 1190px;
-    height: 100px;
-    display: flex;
-    align-items: center;
-  }
 }
 
 .posts{
-  width: 1190px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -27,12 +19,12 @@
     strong {
       font-size: 28px;
       font-weight: 800;
-      margin-bottom: 8px;
     }
 
     p {
       font-size: 18px;
       color: var(--gray-200);
+      margin-top: 8px;
       margin-bottom: 24px;
     }
 
@@ -44,4 +36,14 @@
       margin-right: 26px;
     }
   }
+}
+
+
+.morePosts {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--shock-pink-100);
+  align-self: flex-start;
+  border: 0;
+  background-color: transparent;
 }

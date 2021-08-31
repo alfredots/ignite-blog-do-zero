@@ -1,1 +1,26 @@
 // TODO
+.post {
+  time svg, span svg {
+    margin-right: 0.5rem;
+  }
+
+  time {
+    margin-right: 26px;
+  }
+}
+
+.postTitle {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--gray-100);
+  letter-spacing: -0.5px;
+  line-height: 58px;
+  margin-top: 80px;
+  margin-bottom: 24px;
+}
+
+.postBanner {
+  width: 100%;
+  height: 400px;
+  background-size: cover;
+}

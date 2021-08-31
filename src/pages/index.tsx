@@ -7,9 +7,11 @@ import Link from 'next/link';
 import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import Header from '../components/Header';
 
 interface Post {
   uid?: string;
@@ -32,15 +34,14 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
   // TODO
+  const [posts, setPosts] = useState<Post[]>(postsPagination.results);
   return (
     <>
       <Head>Home | spacetraveling</Head>
-      <main className={styles.container}>
-        <header>
-          <img src="logo.svg" alt="logo" />
-        </header>
-        <div className={styles.posts}>
-          {postsPagination.results.map(post => (
+      <main className={commonStyles.container}>
+        <Header />
+        <div className={`${styles.posts} ${commonStyles.content}`}>
+          {posts.map(post => (
             <Link key={post.uid} href={`post/${post.uid}`}>
               <a>
                 <strong>{post.data.title}</strong>
@@ -56,6 +57,11 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
               </a>
             </Link>
           ))}
+          {postsPagination.next_page && (
+            <button type="button" className={styles.morePosts}>
+              Carregar mais posts
+            </button>
+          )}
         </div>
       </main>
     </>
@@ -68,7 +74,7 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'post')],
     {
       fetch: ['post.title', 'post.subtitle', 'post.author'],
-      pageSize: 100,
+      pageSize: 5,
     }
   );
 
