@@ -8,6 +8,7 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { useState } from 'react';
+import { useCallback } from 'react';
 import { getPrismicClient } from '../services/prismic';
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
@@ -35,6 +36,22 @@ interface HomeProps {
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
   // TODO
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
+  const [pagination, setPagination] = useState(postsPagination.next_page);
+
+  const onClickHandleMorePosts = useCallback(async () => {
+    const response = await fetch(pagination);
+    const responseJson = await response.json();
+
+    const newPosts: Post[] = responseJson.results.map(post => {
+      return {
+        uid: post.uid,
+        first_publication_date: post.first_publication_date,
+        data: post.data,
+      };
+    });
+    setPosts([...posts, ...newPosts]);
+    setPagination(responseJson.next_page);
+  }, [posts, pagination]);
   return (
     <>
       <Head>Home | spacetraveling</Head>
@@ -48,7 +65,13 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
                 <p>{post.data.subtitle}</p>
                 <time>
                   <FaCalendar />
-                  {post.first_publication_date}
+                  {format(
+                    new Date(post.first_publication_date),
+                    'dd MMM yyyy',
+                    {
+                      locale: ptBR,
+                    }
+                  )}
                 </time>
                 <span>
                   <FaUser />
@@ -57,8 +80,12 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
               </a>
             </Link>
           ))}
-          {postsPagination.next_page && (
-            <button type="button" className={styles.morePosts}>
+          {pagination && (
+            <button
+              type="button"
+              onClick={onClickHandleMorePosts}
+              className={styles.morePosts}
+            >
               Carregar mais posts
             </button>
           )}
@@ -74,20 +101,14 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'post')],
     {
       fetch: ['post.title', 'post.subtitle', 'post.author'],
-      pageSize: 5,
+      pageSize: 1,
     }
   );
 
   const posts: Post[] = postsResponse.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'dd MMM yyyy',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: post.data,
     };
   });

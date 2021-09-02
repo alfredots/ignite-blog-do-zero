@@ -1,17 +1,25 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { FaCalendar } from 'react-icons/fa';
 import { FaUser } from 'react-icons/fa';
+import { FaClock } from 'react-icons/fa';
 import Head from 'next/head';
+import Prismic from '@prismicio/client';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+import { useRouter } from 'next/router';
+
+import { RichText } from 'prismic-dom';
 import Header from '../../components/Header';
 import { getPrismicClient } from '../../services/prismic';
-
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 
 interface Post {
+  uid: string;
   first_publication_date: string | null;
   data: {
     title: string;
+    subtitle: string;
     banner: {
       url: string;
     };
@@ -29,46 +37,107 @@ interface PostProps {
   post: Post;
 }
 
-export default function Post(): JSX.Element {
+export default function Post({ post }: PostProps): JSX.Element {
   // TODO
+  const router = useRouter();
+
+  const lectureTime = post.data.content.reduce((acc: string[], cur) => {
+    return acc.concat(RichText.asText(cur.body).split(' '));
+  }, []);
+
+  if (router.isFallback) {
+    return <div>Carregando...</div>;
+  }
+
   return (
     <>
-      <Head>Home | post</Head>
+      <Head>
+        <title>Home | {post.data.title}</title>
+      </Head>
       <main className={commonStyles.container}>
         <Header />
         <img
           className={styles.postBanner}
-          src="https://s2.glbimg.com/glO0kJHVvbBq18EL9GPsF-sCD7I=/e.glbimg.com/og/ed/f/original/2021/06/24/image_wSBrFOE.png"
+          src={post.data.banner.url}
           alt="thumbnail post"
         />
-        <section className={styles.post}>
-          <h1 className={styles.postTitle}>Criando um app CRA do zero</h1>
-          <div>
+        <section className={`${styles.post} ${commonStyles.content}`}>
+          <h1 className={styles.postTitle}>{post.data.title}</h1>
+          <div className={styles.info}>
             <time>
               <FaCalendar />
-              15 Mar 2021
+              {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
+                locale: ptBR,
+              })}
             </time>
             <span>
               <FaUser />
-              Joseph Oliveira
+              {post.data.author}
+            </span>
+            <span>
+              <FaClock />
+              {Math.floor(lectureTime.length / 150)} min
             </span>
           </div>
+          {post.data.content.map(item => {
+            return (
+              <>
+                <h1 className={styles.postContentTitle}>{item.heading}</h1>
+                <div
+                  className={styles.postContent}
+                  dangerouslySetInnerHTML={{
+                    __html: String(RichText.asHtml(item.body)),
+                  }}
+                />
+              </>
+            );
+          })}
         </section>
       </main>
     </>
   );
 }
 
-// export const getStaticPaths = async () => {
-//   const prismic = getPrismicClient();
-//   const posts = await prismic.query(TODO);
+export const getStaticPaths: GetStaticPaths = async () => {
+  // TODO
+  const prismic = getPrismicClient();
+  const posts = await prismic.query([
+    Prismic.predicates.at('document.type', 'post'),
+  ]);
 
-//   // TODO
-// };
+  const paths = posts.results.map(post => {
+    return {
+      params: {
+        slug: post.uid,
+      },
+    };
+  });
 
-// export const getStaticProps = async context => {
-//   const prismic = getPrismicClient();
-//   const response = await prismic.getByUID(TODO);
+  return {
+    paths,
+    fallback: true,
+  };
+};
 
-//   // TODO
-// };
+export const getStaticProps: GetStaticProps = async context => {
+  const prismic = getPrismicClient();
+  const { slug } = context.params;
+  const response = await prismic.getByUID('post', String(slug), {});
+
+  // TODO
+  const post: Post = {
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
+    data: {
+      title: response.data.title,
+      subtitle: response.data.subtitle,
+      banner: response.data.banner,
+      author: response.data.author,
+      content: response.data.content,
+    },
+  };
+
+  return {
+    props: { post },
+  };
+};
