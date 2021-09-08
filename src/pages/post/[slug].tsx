@@ -9,6 +9,8 @@ import ptBR from 'date-fns/locale/pt-BR';
 import { useRouter } from 'next/router';
 
 import { RichText } from 'prismic-dom';
+import ReactUtterences, { identifierTypes } from 'react-utterances';
+import { useEffect, useRef, useState } from 'react';
 import Header from '../../components/Header';
 import { getPrismicClient } from '../../services/prismic';
 import commonStyles from '../../styles/common.module.scss';
@@ -39,10 +41,23 @@ interface PostProps {
 
 export default function Post({ post }: PostProps): JSX.Element {
   // TODO
+
   const router = useRouter();
+  const commentBoxRef = useRef<HTMLDivElement>(null);
 
   const lectureTime = post.data.content.reduce((acc: string[], cur) => {
     return acc.concat(RichText.asText(cur.body).split(' '));
+  }, []);
+
+  useEffect(() => {
+    const scriptEl = document.createElement('script');
+    scriptEl.setAttribute('src', 'https://utteranc.es/client.js');
+    scriptEl.setAttribute('crossorigin', 'anonymous');
+    scriptEl.setAttribute('async', 'true');
+    scriptEl.setAttribute('repo', 'alfredots/ignite-blog-do-zero');
+    scriptEl.setAttribute('issue-term', 'url');
+    scriptEl.setAttribute('theme', 'github-dark');
+    commentBoxRef.current.appendChild(scriptEl);
   }, []);
 
   if (router.isFallback) {
@@ -92,6 +107,7 @@ export default function Post({ post }: PostProps): JSX.Element {
               </>
             );
           })}
+          <div ref={commentBoxRef} />
         </section>
       </main>
     </>
