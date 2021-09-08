@@ -7,6 +7,10 @@
   time, span{
     margin-right: 26px;
   }
+
+  div{
+    margin-bottom: 8px;
+  }
 }
 
 .postTitle {
@@ -51,5 +55,30 @@
     li {
       margin: 0.5rem 0;
     }
+  }
+}
+
+.otherPosts {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+
+  border-top: 2px solid var(--gray-200);
+
+  div {
+    padding: 40px 0;
+
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  a {
+    color: var(--shock-pink-100);
+    font-size: 16px;
+    font-weight: 600;
   }
 }

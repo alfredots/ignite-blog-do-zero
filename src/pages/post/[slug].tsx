@@ -7,9 +7,8 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { useRouter } from 'next/router';
-
+import Link from 'next/link';
 import { RichText } from 'prismic-dom';
-import ReactUtterences, { identifierTypes } from 'react-utterances';
 import { useEffect, useRef, useState } from 'react';
 import Header from '../../components/Header';
 import { getPrismicClient } from '../../services/prismic';
@@ -19,6 +18,7 @@ import styles from './post.module.scss';
 interface Post {
   uid: string;
   first_publication_date: string | null;
+  last_publication_date: string;
   data: {
     title: string;
     subtitle: string;
@@ -79,19 +79,30 @@ export default function Post({ post }: PostProps): JSX.Element {
         <section className={`${styles.post} ${commonStyles.content}`}>
           <h1 className={styles.postTitle}>{post.data.title}</h1>
           <div className={styles.info}>
-            <time>
-              <FaCalendar />
-              {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
-                locale: ptBR,
-              })}
-            </time>
+            <div>
+              <time>
+                <FaCalendar />
+                {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
+                  locale: ptBR,
+                })}
+              </time>
+              <span>
+                <FaUser />
+                {post.data.author}
+              </span>
+              <span>
+                <FaClock />
+                {Math.floor(lectureTime.length / 150)} min
+              </span>
+            </div>
             <span>
-              <FaUser />
-              {post.data.author}
-            </span>
-            <span>
-              <FaClock />
-              {Math.floor(lectureTime.length / 150)} min
+              {format(
+                new Date(post.first_publication_date),
+                "'* editado em' dd MMM yyyy', às' HH:mm",
+                {
+                  locale: ptBR,
+                }
+              )}
             </span>
           </div>
           {post.data.content.map(item => {
@@ -107,6 +118,20 @@ export default function Post({ post }: PostProps): JSX.Element {
               </>
             );
           })}
+          <div className={styles.otherPosts}>
+            <div>
+              <h3>Como utilizar Hooks</h3>
+              <Link href="/">
+                <a>Post anterior</a>
+              </Link>
+            </div>
+            <div>
+              <h3>Como utilizar Hooks</h3>
+              <Link href="/">
+                <a>Próximo post</a>
+              </Link>
+            </div>
+          </div>
           <div ref={commentBoxRef} />
         </section>
       </main>
@@ -135,15 +160,22 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async context => {
+export const getStaticProps: GetStaticProps = async ({
+  preview = false,
+  previewData,
+  params,
+}) => {
   const prismic = getPrismicClient();
-  const { slug } = context.params;
-  const response = await prismic.getByUID('post', String(slug), {});
+  const { slug } = params;
+  const response = await prismic.getByUID('post', String(slug), {
+    ref: previewData?.ref ?? null,
+  });
 
   // TODO
   const post: Post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     data: {
       title: response.data.title,
       subtitle: response.data.subtitle,
@@ -154,6 +186,6 @@ export const getStaticProps: GetStaticProps = async context => {
   };
 
   return {
-    props: { post },
+    props: { post, preview },
   };
 };
