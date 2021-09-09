@@ -37,9 +37,23 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
+  prevpost: {
+    uid: string;
+    title: string;
+  } | null;
+  nextpost: {
+    uid: string;
+    title: string;
+  } | null;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  preview,
+  prevpost,
+  nextpost,
+}: PostProps): JSX.Element {
   // TODO
 
   const router = useRouter();
@@ -119,21 +133,40 @@ export default function Post({ post }: PostProps): JSX.Element {
             );
           })}
           <div className={styles.otherPosts}>
-            <div>
-              <h3>Como utilizar Hooks</h3>
-              <Link href="/">
-                <a>Post anterior</a>
-              </Link>
-            </div>
-            <div>
-              <h3>Como utilizar Hooks</h3>
-              <Link href="/">
-                <a>Próximo post</a>
-              </Link>
-            </div>
+            {prevpost ? (
+              <div>
+                <h3>{prevpost.title}</h3>
+                <Link href={`/post/${prevpost.uid}`}>
+                  <a>Post anterior</a>
+                </Link>
+              </div>
+            ) : (
+              <div />
+            )}
+            {nextpost ? (
+              <div>
+                <h3>{nextpost.title}</h3>
+                <Link href={`/post/${nextpost.uid}`}>
+                  <a>Próximo post</a>
+                </Link>
+              </div>
+            ) : (
+              <div />
+            )}
           </div>
           <div ref={commentBoxRef} />
         </section>
+        {preview && (
+          <aside>
+            <Link href="/api/exit-preview">
+              <a>
+                <button type="button" className={commonStyles.previewButton}>
+                  Sair do modo Preview
+                </button>
+              </a>
+            </Link>
+          </aside>
+        )}
       </main>
     </>
   );
@@ -171,6 +204,24 @@ export const getStaticProps: GetStaticProps = async ({
     ref: previewData?.ref ?? null,
   });
 
+  const prevpost = (
+    await prismic.query(Prismic.predicates.at('document.type', 'post'), {
+      fetch: ['post.title'],
+      pageSize: 1,
+      after: `${response.id}`,
+      orderings: '[document.first_publication_date]',
+    })
+  ).results[0];
+
+  const nextpost = (
+    await prismic.query(Prismic.predicates.at('document.type', 'post'), {
+      fetch: ['post.title'],
+      pageSize: 1,
+      after: `${response.id}`,
+      orderings: '[document.first_publication_date desc]',
+    })
+  ).results[0];
+
   // TODO
   const post: Post = {
     uid: response.uid,
@@ -186,6 +237,21 @@ export const getStaticProps: GetStaticProps = async ({
   };
 
   return {
-    props: { post, preview },
+    props: {
+      post,
+      preview,
+      prevpost: prevpost
+        ? {
+            uid: prevpost.uid,
+            title: prevpost?.data.title,
+          }
+        : null,
+      nextpost: nextpost
+        ? {
+            uid: nextpost?.uid,
+            title: nextpost?.data.title,
+          }
+        : null,
+    },
   };
 };

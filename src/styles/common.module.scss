@@ -9,3 +9,22 @@
 .content {
   width: 1190px;
 }
+
+.previewButton {
+  width: 700px;
+  height: 58px;
+  border: 0;
+  background-color: #F8F8F8;
+  color: #000000;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 20px auto;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
